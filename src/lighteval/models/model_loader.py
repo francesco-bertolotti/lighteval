@@ -37,6 +37,7 @@ from lighteval.models.endpoints.inference_providers_model import (
 )
 from lighteval.models.endpoints.litellm_model import LiteLLMClient, LiteLLMModelConfig
 from lighteval.models.endpoints.tgi_model import ModelClient, TGIModelConfig
+from lighteval.models.endpoints.vllm_model import VLLMClient, VLLMClientConfig
 from lighteval.models.sglang.sglang_model import SGLangModel, SGLangModelConfig
 from lighteval.models.transformers.adapter_model import AdapterModel, AdapterModelConfig
 from lighteval.models.transformers.delta_model import DeltaModel, DeltaModelConfig
@@ -89,6 +90,9 @@ def load_model(  # noqa: C901
 
     if isinstance(config, InferenceProvidersModelConfig):
         return load_inference_providers_model(config=config)
+
+    if isinstance(config, VLLMClientConfig):
+        return VLLMClient(config=config)
 
 
 def load_model_with_tgi(config: TGIModelConfig):
