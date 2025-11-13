@@ -27,7 +27,6 @@ class VLLMClientConfig(lighteval.models.abstract_model.ModelConfig):
     frequency_penalty: float = 0.0
     presence_penalty: float = 0.0
     seed: int|None = None
-    system_prompt: str|None = None
     cache_dir: str|None
 
 class VLLMClient(lighteval.models.abstract_model.LightevalModel):
@@ -53,7 +52,7 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
                     "model": self.config.model_name,
                     "messages": (
                         messages := (
-                            [{"role":"system", "content":self.config.system_prompt}] if self.config.system_prompt else []) + 
+                            [{"role":"system", "content": doc.instruction}] if doc.instruction else []) + 
                             [{"role": "user", "content": doc.query}]
                         ),
                     "n": doc.num_samples,
