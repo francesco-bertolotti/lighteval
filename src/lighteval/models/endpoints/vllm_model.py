@@ -2,7 +2,6 @@ import concurrent
 import diskcache
 import lighteval
 import requests
-import pydantic
 import hashlib
 import logging
 import typing
@@ -48,7 +47,6 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
         self.presence_penalty = config.presence_penalty
         self.seed = config.seed
         self.cache_dir = config.cache_dir
-        self._cache = lighteval.utils.cache_management.SampleCache(config.model_copy(update={"cache_dir": "/tmp"}))
 
     def greedy_until(self, docs: list[lighteval.tasks.requests.Doc]) -> list[lighteval.models.model_output.ModelResponse]:
 
