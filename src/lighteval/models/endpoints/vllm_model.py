@@ -27,6 +27,7 @@ class VLLMClientConfig(lighteval.models.abstract_model.ModelConfig):
     presence_penalty: float = 0.0
     seed: int|None = None
     cache_dir: str|None
+    system_prompt_template: str|None = "{instruction}"
 
 class VLLMClient(lighteval.models.abstract_model.LightevalModel):
 
@@ -47,18 +48,21 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
         self.presence_penalty = config.presence_penalty
         self.seed = config.seed
         self.cache_dir = config.cache_dir
+        self.system_prompt_template = config.system_prompt_template
 
     def greedy_until(self, docs: list[lighteval.tasks.requests.Doc]) -> list[lighteval.models.model_output.ModelResponse]:
 
         def call(doc: lighteval.tasks.requests.Doc, cache:diskcache.Cache) -> lighteval.models.model_output.ModelResponse:
             """ Make a single request to the model endpoint and return the response. """
 
+            system_prompt = self.system_prompt_template.format(instruction=doc.instruction if doc.instruction else "" )
+
             # prepare request
             json_params = { 
                 "model": self.model_name,
                 "messages": (
                     messages := (
-                        [{"role":"system", "content": doc.instruction}] if doc.instruction else []) + 
+                        [{"role":"system", "content": system_prompt}] if system_prompt else []) + 
                         [{"role": "user", "content": doc.query}]
                     ),
                 "n": doc.num_samples,
@@ -66,11 +70,15 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
                 "temperature": self.temperature,
                 "top_p": self.top_p,
                 "min_p": self.min_p,
+                "top_k": self.top_k,
                 "frequency_penalty": self.frequency_penalty,
                 "presence_penalty": self.presence_penalty,
                 "seed": self.seed,
                 **self.extra_body,
             }
+
+            #import rich
+            #rich.print(json_params)
 
             # check cache
             key = hashlib.sha256(json.dumps(json_params, sort_keys=True).encode()).hexdigest()
