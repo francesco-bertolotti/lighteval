@@ -84,6 +84,8 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
             key = hashlib.sha256(json.dumps(json_params, sort_keys=True).encode()).hexdigest()
             if key in cache:
                 response = cache[key]["response"]
+                if response.get("code", 200) != 200:
+                    logger.warning(f"VLLM API returned cached error response for key {key}: {response}, returning empty responses.")
             else:
                 response = requests.post(
                     url=f"{self.base_url}/chat/completions",
@@ -95,9 +97,9 @@ class VLLMClient(lighteval.models.abstract_model.LightevalModel):
                     timeout=self.timeout
                 ).json()
                 cache[key] = {"response" : response, "request" : json_params}
-            
 
-            match response.get("error", {}).get("code", 200):
+
+            match response.get("code", 200):
                 case 200:
                     return lighteval.models.model_output.ModelResponse(
                         text=[choice["message"]["content"] for choice in response["choices"]],
